@@ -5,6 +5,8 @@ import org.acme.entity.Room;
 import org.acme.repository.BookingRepository;
 import org.acme.repository.RoomRepository;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.WebApplicationException;
 import java.time.LocalDate;
@@ -15,19 +17,24 @@ public class BookingService {
 
     private final BookingRepository bookingRepository;
     private final RoomRepository roomRepository;
+    private final EntityManager entityManager;
 
-    public BookingService(BookingRepository bookingRepository, RoomRepository roomRepository) {
+    public BookingService(BookingRepository bookingRepository, RoomRepository roomRepository,
+                          EntityManager entityManager) {
         this.bookingRepository = bookingRepository;
         this.roomRepository = roomRepository;
+        this.entityManager = entityManager;
     }
 
     @Transactional
     public Booking createBooking(Long roomId, String customerName,
                                  LocalDate checkIn, LocalDate checkOut) {
-
-        Room room = roomRepository.findById(roomId);
+        Room room = entityManager.find(Room.class, roomId, LockModeType.PESSIMISTIC_WRITE);
         if (room == null) {
             throw new WebApplicationException("Room not found", 404);
+        }
+        if (checkOut.isBefore(checkIn) || checkOut.equals(checkIn)) {
+            throw new WebApplicationException("checkOutDate harus setelah checkInDate", 400);
         }
 
         List<Booking> conflicts =

@@ -16,4 +16,12 @@ public class BookingRepository implements PanacheRepository<Booking> {
                 roomId, checkIn, checkOut
         );
     }
+
+    public boolean isRoomAvailable(Long roomId, LocalDate checkIn, LocalDate checkOut) {
+        return findActiveBookings(roomId, checkIn, checkOut).isEmpty();
+    }
+
+    public List<Booking> findAll(io.quarkus.panache.common.Page page) {
+        return findAll().page(page).list();
+    }
 }
