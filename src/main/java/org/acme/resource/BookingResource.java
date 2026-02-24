@@ -2,11 +2,13 @@ package org.acme.resource;
 
 import org.acme.entity.Booking;
 import org.acme.service.BookingService;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import java.time.LocalDate;
 
 @Path("/bookings")
+@Tag(name = "Bookings")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class BookingResource {
