@@ -10,6 +10,8 @@ import org.acme.dto.HotelRequestDto;
 import org.eclipse.microprofile.openapi.annotations.OpenAPIDefinition;
 import org.eclipse.microprofile.openapi.annotations.info.Info;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
+import jakarta.annotation.security.PermitAll;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -32,17 +34,20 @@ public class HotelResource {
     }
 
     @GET
+    @PermitAll
     public PageResponse<Hotel> getHotels(
             @QueryParam("page") @DefaultValue("0") int page,
             @QueryParam("size") @DefaultValue("20") int size) {
-        Page p = Page.of(page, size);
+        int safeSize = size <= 0 ? 20 : size;
+        Page p = Page.of(page, safeSize);
         List<Hotel> content = hotelRepository.findAll(p);
         long total = hotelRepository.count();
-        return new PageResponse<>(content, page, size, total, (int) Math.ceil((double) total / size));
+        return new PageResponse<>(content, page, safeSize, total, (int) Math.ceil((double) total / safeSize));
     }
 
     @GET
     @Path("/{id}")
+    @PermitAll
     public Hotel getHotel(@PathParam("id") Long id) {
         Hotel hotel = hotelRepository.findById(id);
         if (hotel == null) {
@@ -52,6 +57,7 @@ public class HotelResource {
     }
 
     @POST
+    @RolesAllowed("admin")
     public Hotel createHotel(@Valid HotelRequestDto dto) {
         Hotel hotel = new Hotel();
         hotel.name = dto.name();
@@ -62,6 +68,7 @@ public class HotelResource {
 
     @PUT
     @Path("/{id}")
+    @RolesAllowed("admin")
     public Hotel updateHotel(@PathParam("id") Long id, @Valid HotelRequestDto dto) {
         Hotel hotel = hotelRepository.findById(id);
         if (hotel == null) {
@@ -74,6 +81,7 @@ public class HotelResource {
 
     @DELETE
     @Path("/{id}")
+    @RolesAllowed("admin")
     public void deleteHotel(@PathParam("id") Long id) {
         if (!hotelRepository.deleteById(id)) {
             throw new WebApplicationException("Hotel not found", Response.Status.NOT_FOUND);
@@ -82,6 +90,7 @@ public class HotelResource {
 
     @GET
     @Path("/{hotelId}/rooms")
+    @PermitAll
     public PageResponse<Room> getRoomsByHotel(
             @PathParam("hotelId") Long hotelId,
             @QueryParam("page") @DefaultValue("0") int page,

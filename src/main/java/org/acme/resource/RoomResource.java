@@ -9,6 +9,8 @@ import org.acme.repository.BookingRepository;
 import org.acme.repository.HotelRepository;
 import org.acme.repository.RoomRepository;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
+import jakarta.annotation.security.PermitAll;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -36,6 +38,7 @@ public class RoomResource {
 
     @GET
     @Path("/{id}")
+    @PermitAll
     public Room getRoom(@PathParam("id") Long id) {
         Room room = roomRepository.findById(id);
         if (room == null) {
@@ -45,6 +48,7 @@ public class RoomResource {
     }
 
     @GET
+    @PermitAll
     public PageResponse<Room> getAllRooms(
             @QueryParam("page") @DefaultValue("0") int page,
             @QueryParam("size") @DefaultValue("20") int size) {
@@ -56,6 +60,7 @@ public class RoomResource {
 
     @PUT
     @Path("/{id}")
+    @RolesAllowed("admin")
     public Room updateRoom(@PathParam("id") Long id, @Valid RoomRequestDto dto) {
         Room room = roomRepository.findById(id);
         if (room == null) {
@@ -74,6 +79,7 @@ public class RoomResource {
 
     @DELETE
     @Path("/{id}")
+    @RolesAllowed("admin")
     public void deleteRoom(@PathParam("id") Long id) {
         if (!roomRepository.deleteById(id)) {
             throw new WebApplicationException("Room not found", Response.Status.NOT_FOUND);
@@ -81,6 +87,7 @@ public class RoomResource {
     }
 
     @POST
+    @RolesAllowed("admin")
     public Room addRoom(@Valid RoomRequestDto dto) {
         Hotel hotel = hotelRepository.findById(dto.hotelId());
         if (hotel == null) {
@@ -97,6 +104,7 @@ public class RoomResource {
 
     @GET
     @Path("/{id}/availability")
+    @PermitAll
     public Map<String, Boolean> checkAvailability(
             @PathParam("id") Long roomId,
             @QueryParam("checkIn") LocalDate checkIn,

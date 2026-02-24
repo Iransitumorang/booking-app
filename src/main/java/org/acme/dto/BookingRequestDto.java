@@ -8,9 +8,6 @@ import java.time.LocalDate;
 public record BookingRequestDto(
         @NotNull(message = "roomId wajib diisi")
         Long roomId,
-        @NotNull(message = "customerName wajib diisi")
-        @Size(min = 1, max = 100)
-        String customerName,
         @NotNull(message = "checkInDate wajib diisi")
         @FutureOrPresent(message = "checkInDate tidak boleh tanggal lalu")
         LocalDate checkInDate,
