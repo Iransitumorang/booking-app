@@ -12,6 +12,7 @@ import org.eclipse.microprofile.openapi.annotations.info.Info;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -57,7 +58,8 @@ public class HotelResource {
     }
 
     @POST
-    @RolesAllowed("admin")
+    @RolesAllowed("Admin")
+    @Transactional
     public Hotel createHotel(@Valid HotelRequestDto dto) {
         Hotel hotel = new Hotel();
         hotel.name = dto.name();
@@ -68,7 +70,8 @@ public class HotelResource {
 
     @PUT
     @Path("/{id}")
-    @RolesAllowed("admin")
+    @RolesAllowed("Admin")
+    @Transactional
     public Hotel updateHotel(@PathParam("id") Long id, @Valid HotelRequestDto dto) {
         Hotel hotel = hotelRepository.findById(id);
         if (hotel == null) {
@@ -81,7 +84,8 @@ public class HotelResource {
 
     @DELETE
     @Path("/{id}")
-    @RolesAllowed("admin")
+    @RolesAllowed("Admin")
+    @Transactional
     public void deleteHotel(@PathParam("id") Long id) {
         if (!hotelRepository.deleteById(id)) {
             throw new WebApplicationException("Hotel not found", Response.Status.NOT_FOUND);

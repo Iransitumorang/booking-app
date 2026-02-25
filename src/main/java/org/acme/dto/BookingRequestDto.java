@@ -13,6 +13,7 @@ public record BookingRequestDto(
         LocalDate checkInDate,
         @NotNull(message = "checkOutDate wajib diisi")
         @FutureOrPresent(message = "checkOutDate tidak boleh tanggal lalu")
-        LocalDate checkOutDate
+        LocalDate checkOutDate,
+        String customerName
 ) {
 }

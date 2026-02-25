@@ -21,7 +21,7 @@ import java.util.List;
 @Tag(name = "Bookings")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-@RolesAllowed({"user", "admin"})
+@RolesAllowed({"User", "Admin"})
 public class BookingResource {
 
     private final BookingService bookingService;
@@ -38,13 +38,17 @@ public class BookingResource {
         this.bookingRepository = bookingRepository;
     }
 
+    private boolean isAdmin() {
+        return securityContext.isUserInRole("Admin");
+    }
+
     @GET
     public PageResponse<Booking> getBookings(
             @QueryParam("page") @DefaultValue("0") int page,
             @QueryParam("size") @DefaultValue("20") int size,
             @QueryParam("customerName") String customerName) {
         String username = jwt.getName();
-        boolean isAdmin = securityContext.isUserInRole("admin");
+        boolean isAdmin = isAdmin();
         String filterBy = isAdmin ? (customerName != null && !customerName.isBlank() ? customerName : null) : username;
 
         Page p = Page.of(page, size);
@@ -64,18 +68,24 @@ public class BookingResource {
         if (booking == null) {
             throw new WebApplicationException("Booking not found", Response.Status.NOT_FOUND);
         }
-        if (!securityContext.isUserInRole("admin") && !booking.customerName.equals(jwt.getName())) {
+        if (!isAdmin() && !booking.customerName.equals(jwt.getName())) {
             throw new WebApplicationException("Forbidden", Response.Status.FORBIDDEN);
         }
         return booking;
     }
 
     @POST
-    @RolesAllowed("user")
+    @RolesAllowed({"User", "Admin"})
     public Booking createBooking(@Valid BookingRequestDto request) {
+        String customerName = request.customerName();
+        if (isAdmin() && customerName != null && !customerName.isBlank()) {
+            customerName = customerName.trim();
+        } else {
+            customerName = jwt.getName();
+        }
         return bookingService.createBooking(
                 request.roomId(),
-                jwt.getName(),
+                customerName,
                 request.checkInDate(),
                 request.checkOutDate()
         );
@@ -88,7 +98,7 @@ public class BookingResource {
         if (booking == null) {
             throw new WebApplicationException("Booking not found", Response.Status.NOT_FOUND);
         }
-        if (!securityContext.isUserInRole("admin") && !booking.customerName.equals(jwt.getName())) {
+        if (!isAdmin() && !booking.customerName.equals(jwt.getName())) {
             throw new WebApplicationException("Hanya bisa membatalkan booking sendiri", Response.Status.FORBIDDEN);
         }
         return bookingService.cancelBooking(id);

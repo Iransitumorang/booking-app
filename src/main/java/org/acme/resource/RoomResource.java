@@ -11,6 +11,7 @@ import org.acme.repository.RoomRepository;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -60,7 +61,8 @@ public class RoomResource {
 
     @PUT
     @Path("/{id}")
-    @RolesAllowed("admin")
+    @RolesAllowed("Admin")
+    @Transactional
     public Room updateRoom(@PathParam("id") Long id, @Valid RoomRequestDto dto) {
         Room room = roomRepository.findById(id);
         if (room == null) {
@@ -79,7 +81,8 @@ public class RoomResource {
 
     @DELETE
     @Path("/{id}")
-    @RolesAllowed("admin")
+    @RolesAllowed("Admin")
+    @Transactional
     public void deleteRoom(@PathParam("id") Long id) {
         if (!roomRepository.deleteById(id)) {
             throw new WebApplicationException("Room not found", Response.Status.NOT_FOUND);
@@ -87,7 +90,8 @@ public class RoomResource {
     }
 
     @POST
-    @RolesAllowed("admin")
+    @RolesAllowed("Admin")
+    @Transactional
     public Room addRoom(@Valid RoomRequestDto dto) {
         Hotel hotel = hotelRepository.findById(dto.hotelId());
         if (hotel == null) {

@@ -43,10 +43,15 @@ public class AuthService {
         return generateToken(user);
     }
 
+    private String toJwtGroup(String role) {
+        if (role == null) return "User";
+        return "admin".equalsIgnoreCase(role) ? "Admin" : "User";
+    }
+
     public String generateToken(User user) {
         return Jwt.issuer(issuer)
                 .upn(user.username)
-                .groups(new HashSet<>(Arrays.asList(user.role)))
+                .groups(new HashSet<>(Arrays.asList(toJwtGroup(user.role != null ? user.role : "user"))))
                 .claim("name", user.name)
                 .claim("userId", user.id)
                 .sign();
