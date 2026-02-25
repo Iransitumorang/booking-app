@@ -368,6 +368,29 @@ Saat error, backend return HTTP status + message:
 
 ---
 
+## 9.5 Pencegahan Double Booking (Sudah Diimplementasi)
+
+Backend **sudah mencegah** double booking. Room yang sudah dibooking tidak bisa dibooking lagi untuk tanggal yang bertumpuk.
+
+**Mekanisme:**
+- `GET /rooms/{id}/availability?checkIn=...&checkOut=...` → cek dulu sebelum tampilkan tombol booking
+- `POST /bookings` → backend cek lagi; jika bentrok return **400** dengan pesan `"Room already booked for selected dates"`
+
+**Instruksi untuk Frontend:**
+
+1. **Sebelum user submit booking** → panggil `GET /rooms/{id}/availability?checkIn=...&checkOut=...`
+   - Response `{"available": true}` → tampilkan tombol/form booking
+   - Response `{"available": false}` → **disable tombol booking**, tampilkan pesan: *"Kamar tidak tersedia untuk tanggal ini. Pilih tanggal lain."*
+
+2. **Saat user submit** → tetap kirim `POST /bookings`. Jika dapat **400**:
+   - Parse message dari response (bisa `"Room already booked for selected dates"`)
+   - Tampilkan toast/alert: *"Kamar sudah dibooking orang lain. Silakan pilih tanggal atau kamar lain."*
+   - *(Race condition: 2 user bisa cek availability bersamaan; backend tetap tolak yang kedua)*
+
+3. **Setiap kali user ganti tanggal** → panggil ulang `GET /rooms/{id}/availability` untuk update status.
+
+---
+
 ## 10. Contoh Alur Frontend (Customer Flow)
 
 1. **Tampilkan daftar hotel**
@@ -394,8 +417,9 @@ Saat error, backend return HTTP status + message:
    ```
    GET /rooms/5/availability?checkIn=2026-03-10&checkOut=2026-03-12
    ```
+   Response: `{"available": true}` atau `{"available": false}`
 
-6. **Jika available → tampilkan form konfirmasi**
+6. **Jika `available: true`** → tampilkan form konfirmasi & tombol booking. **Jika `available: false`** → disable tombol, tampilkan "Kamar tidak tersedia untuk tanggal ini"
 
 7. **User login/register** (jika belum)
    ```
