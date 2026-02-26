@@ -4,6 +4,57 @@ Dokumen ini berisi **semua info** yang frontend butuhkan untuk terhubung ke back
 
 ---
 
+## 📌 Pembaruan Terbaru (Breaking Change)
+
+**ID sekarang memakai UUID (bukan number lagi)**
+
+| Sebelum | Sesudah |
+|---------|---------|
+| `"id": 1`, `"hotelId": 51`, `"roomId": 3` | `"id": "550e8400-e29b-41d4-a716-446655440000"` |
+| Tipe: number | Tipe: string (UUID) |
+
+**Yang perlu diubah di frontend:**
+- Semua `id`, `hotelId`, `roomId` → **string UUID**
+- URL path: `/hotels/1` → `/hotels/550e8400-e29b-41d4-a716-446655440000`
+- Request body: `{"roomId": 5, ...}` → `{"roomId": "550e8400-e29b-41d4-a716-446655440000", ...}`
+
+---
+
+## 📋 Checklist Perbaikan Frontend (UUID)
+
+| No | Yang dicek | Perbaikan |
+|----|------------|-----------|
+| 1 | **Tipe data ID** | Gunakan `string` (bukan `number`) untuk `id`, `hotelId`, `roomId` di TypeScript/interface dan state. |
+| 2 | **URL detail/edit** | Build path pakai UUID: `/hotels/${hotel.id}`, `/rooms/${room.id}`, `/bookings/${booking.id}` — jangan parse ke number. |
+| 3 | **GET rooms by hotel** | Panggil `GET /hotels/{hotelId}/rooms` dengan `hotelId` string (dari `hotel.id`). |
+| 4 | **Form tambah kamar** | Kirim `hotelId` sebagai string: `{ roomNumber, type, price, hotelId: hotel.id }` (tanpa `Number(...)`). |
+| 5 | **Form booking** | Kirim `roomId` sebagai string: `{ roomId: room.id, checkInDate, checkOutDate }`. |
+| 6 | **Filter/daftar** | Saat tampilkan daftar hotel/room/booking, pakai `item.id` langsung (sudah string). Jangan `String(item.id)` kalau backend kirim string. |
+| 7 | **Cancel booking** | `PUT /bookings/${booking.id}/cancel` — `booking.id` harus string UUID. |
+| 8 | **Cek availability** | `GET /rooms/${room.id}/availability?checkIn=...&checkOut=...` — `room.id` string. |
+
+**Contoh TypeScript (Vue/React):**
+```ts
+interface Hotel {
+  id: string;        // UUID, bukan number
+  name: string;
+  location: string;
+}
+interface Room {
+  id: string;
+  roomNumber: string;
+  type: string;
+  price: number;
+  hotel: Hotel;     // hotel.id juga string
+}
+// POST tambah kamar
+await api.post('/rooms', { roomNumber: '101', type: 'STANDARD', price: 500000, hotelId: selectedHotel.id });
+// POST booking
+await api.post('/bookings', { roomId: room.id, checkInDate: '2026-03-10', checkOutDate: '2026-03-12' });
+```
+
+---
+
 ## 0. Alur CRUD yang Benar (PENTING)
 
 ### Admin – Tambah/Edit/Hapus Hotel & Room
@@ -56,6 +107,8 @@ Dokumen ini berisi **semua info** yang frontend butuhkan untuk terhubung ke back
 - **Hotel:** punya `name`, `location`. Satu hotel punya banyak kamar.
 - **Room:** punya `roomNumber`, `type`, `price`, dan relasi ke `hotelId`. Harga ada di sini.
 - **Booking:** punya `roomId`, `checkInDate`, `checkOutDate`. Tanggal check-in/out ada di sini. `customerName` dari token.
+
+**Format ID (UUID):** Semua `id`, `hotelId`, `roomId` memakai **UUID** (string), bukan number. Contoh: `"550e8400-e29b-41d4-a716-446655440000"`. Kirim dan terima sebagai string.
 
 ---
 
@@ -204,7 +257,7 @@ Authorization: Bearer <token>
 **Response Hotel:**
 ```json
 {
-  "id": 1,
+  "id": "550e8400-e29b-41d4-a716-446655440000",
   "name": "Hotel Santai",
   "location": "Jakarta"
 }
@@ -229,19 +282,19 @@ Authorization: Bearer <token>
   "roomNumber": "101",
   "type": "DELUXE",
   "price": 500000,
-  "hotelId": 1
+  "hotelId": "550e8400-e29b-41d4-a716-446655440000"
 }
 ```
 
 **Response Room:**
 ```json
 {
-  "id": 1,
+  "id": "660e8400-e29b-41d4-a716-446655440001",
   "roomNumber": "101",
   "type": "DELUXE",
   "price": 500000,
   "hotel": {
-    "id": 1,
+    "id": "550e8400-e29b-41d4-a716-446655440000",
     "name": "Hotel Santai",
     "location": "Jakarta"
   }
@@ -269,7 +322,7 @@ Authorization: Bearer <token>
 **BookingRequestDto (POST):** *Perlu login (customer atau admin)*
 ```json
 {
-  "roomId": 1,
+  "roomId": "660e8400-e29b-41d4-a716-446655440001",
   "checkInDate": "2026-03-10",
   "checkOutDate": "2026-03-12",
   "customerName": "budi"
@@ -281,14 +334,14 @@ Authorization: Bearer <token>
 **Response Booking:**
 ```json
 {
-  "id": 1,
+  "id": "770e8400-e29b-41d4-a716-446655440002",
   "room": {
-    "id": 1,
+    "id": "660e8400-e29b-41d4-a716-446655440001",
     "roomNumber": "101",
     "type": "DELUXE",
     "price": 500000,
     "hotel": {
-      "id": 1,
+      "id": "550e8400-e29b-41d4-a716-446655440000",
       "name": "Hotel Santai",
       "location": "Jakarta"
     }
@@ -349,14 +402,14 @@ Saat error, backend return HTTP status + message:
 | roomNumber | string | ✓ | "101" |
 | type | string | ✓ | "STANDARD", "DELUXE", "SUITE" |
 | price | number | ✓ | 500000 |
-| hotelId | number | ✓ | 1 |
+| hotelId | string (UUID) | ✓ | "550e8400-e29b-41d4-a716-446655440000" |
 
 *1 hotel punya banyak kamar. Harga ada di Room.*
 
 ### Booking (POST /bookings) – butuh login (customer atau admin)
 | Kolom | Tipe | Wajib | Contoh |
 |-------|------|-------|--------|
-| roomId | number | ✓ | 1 |
+| roomId | string (UUID) | ✓ | "660e8400-e29b-41d4-a716-446655440001" |
 | checkInDate | string | ✓ | "2026-03-10" (YYYY-MM-DD) |
 | checkOutDate | string | ✓ | "2026-03-12" (YYYY-MM-DD) |
 | customerName | string | Opsional | "budi" (hanya admin, untuk booking atas nama customer) |

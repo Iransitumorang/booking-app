@@ -1,12 +1,14 @@
 package org.acme.entity;
 
-import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+
 import java.time.LocalDate;
 
 @Entity
-public class Booking extends PanacheEntity {
+@Table(name = "booking")
+public class Booking extends UuidPanacheEntity {
 
     @ManyToOne
     public Room room;

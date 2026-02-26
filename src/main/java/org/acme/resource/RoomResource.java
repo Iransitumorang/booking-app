@@ -19,6 +19,7 @@ import jakarta.ws.rs.core.Response;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Path("/rooms")
 @Produces(MediaType.APPLICATION_JSON)
@@ -40,7 +41,8 @@ public class RoomResource {
     @GET
     @Path("/{id}")
     @PermitAll
-    public Room getRoom(@PathParam("id") Long id) {
+    @Transactional
+    public Room getRoom(@PathParam("id") UUID id) {
         Room room = roomRepository.findById(id);
         if (room == null) {
             throw new WebApplicationException("Room not found", Response.Status.NOT_FOUND);
@@ -50,6 +52,7 @@ public class RoomResource {
 
     @GET
     @PermitAll
+    @Transactional
     public PageResponse<Room> getAllRooms(
             @QueryParam("page") @DefaultValue("0") int page,
             @QueryParam("size") @DefaultValue("20") int size) {
@@ -63,7 +66,7 @@ public class RoomResource {
     @Path("/{id}")
     @RolesAllowed("Admin")
     @Transactional
-    public Room updateRoom(@PathParam("id") Long id, @Valid RoomRequestDto dto) {
+    public Room updateRoom(@PathParam("id") UUID id, @Valid RoomRequestDto dto) {
         Room room = roomRepository.findById(id);
         if (room == null) {
             throw new WebApplicationException("Room not found", Response.Status.NOT_FOUND);
@@ -83,7 +86,7 @@ public class RoomResource {
     @Path("/{id}")
     @RolesAllowed("Admin")
     @Transactional
-    public void deleteRoom(@PathParam("id") Long id) {
+    public void deleteRoom(@PathParam("id") UUID id) {
         if (!roomRepository.deleteById(id)) {
             throw new WebApplicationException("Room not found", Response.Status.NOT_FOUND);
         }
@@ -110,7 +113,7 @@ public class RoomResource {
     @Path("/{id}/availability")
     @PermitAll
     public Map<String, Boolean> checkAvailability(
-            @PathParam("id") Long roomId,
+            @PathParam("id") UUID roomId,
             @QueryParam("checkIn") LocalDate checkIn,
             @QueryParam("checkOut") LocalDate checkOut) {
         if (checkIn == null || checkOut == null) {

@@ -2,12 +2,12 @@ package org.acme.dto;
 
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
+import java.util.UUID;
 
 public record BookingRequestDto(
         @NotNull(message = "roomId wajib diisi")
-        Long roomId,
+        UUID roomId,
         @NotNull(message = "checkInDate wajib diisi")
         @FutureOrPresent(message = "checkInDate tidak boleh tanggal lalu")
         LocalDate checkInDate,

@@ -1,10 +1,11 @@
 package org.acme.entity;
 
-import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 
 @Entity
-public class Hotel extends PanacheEntity {
+@Table(name = "hotel")
+public class Hotel extends UuidPanacheEntity {
 
     public String name;
 

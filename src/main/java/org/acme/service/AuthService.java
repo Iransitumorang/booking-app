@@ -53,7 +53,7 @@ public class AuthService {
                 .upn(user.username)
                 .groups(new HashSet<>(Arrays.asList(toJwtGroup(user.role != null ? user.role : "user"))))
                 .claim("name", user.name)
-                .claim("userId", user.id)
+                .claim("userId", user.id.toString())
                 .sign();
     }
 }

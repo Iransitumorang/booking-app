@@ -17,7 +17,9 @@ import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+
 import java.util.List;
+import java.util.UUID;
 
 @OpenAPIDefinition(info = @Info(title = "Hotel Booking API", version = "1.0"))
 @Path("/hotels")
@@ -36,6 +38,7 @@ public class HotelResource {
 
     @GET
     @PermitAll
+    @Transactional
     public PageResponse<Hotel> getHotels(
             @QueryParam("page") @DefaultValue("0") int page,
             @QueryParam("size") @DefaultValue("20") int size) {
@@ -49,7 +52,7 @@ public class HotelResource {
     @GET
     @Path("/{id}")
     @PermitAll
-    public Hotel getHotel(@PathParam("id") Long id) {
+    public Hotel getHotel(@PathParam("id") UUID id) {
         Hotel hotel = hotelRepository.findById(id);
         if (hotel == null) {
             throw new WebApplicationException("Hotel not found", Response.Status.NOT_FOUND);
@@ -72,7 +75,7 @@ public class HotelResource {
     @Path("/{id}")
     @RolesAllowed("Admin")
     @Transactional
-    public Hotel updateHotel(@PathParam("id") Long id, @Valid HotelRequestDto dto) {
+    public Hotel updateHotel(@PathParam("id") UUID id, @Valid HotelRequestDto dto) {
         Hotel hotel = hotelRepository.findById(id);
         if (hotel == null) {
             throw new WebApplicationException("Hotel not found", Response.Status.NOT_FOUND);
@@ -86,7 +89,7 @@ public class HotelResource {
     @Path("/{id}")
     @RolesAllowed("Admin")
     @Transactional
-    public void deleteHotel(@PathParam("id") Long id) {
+    public void deleteHotel(@PathParam("id") UUID id) {
         if (!hotelRepository.deleteById(id)) {
             throw new WebApplicationException("Hotel not found", Response.Status.NOT_FOUND);
         }
@@ -95,8 +98,9 @@ public class HotelResource {
     @GET
     @Path("/{hotelId}/rooms")
     @PermitAll
+    @Transactional
     public PageResponse<Room> getRoomsByHotel(
-            @PathParam("hotelId") Long hotelId,
+            @PathParam("hotelId") UUID hotelId,
             @QueryParam("page") @DefaultValue("0") int page,
             @QueryParam("size") @DefaultValue("20") int size) {
         Page p = Page.of(page, size);

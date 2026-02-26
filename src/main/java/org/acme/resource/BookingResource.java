@@ -10,12 +10,15 @@ import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
+
 import java.util.List;
+import java.util.UUID;
 
 @Path("/bookings")
 @Tag(name = "Bookings")
@@ -43,6 +46,7 @@ public class BookingResource {
     }
 
     @GET
+    @Transactional
     public PageResponse<Booking> getBookings(
             @QueryParam("page") @DefaultValue("0") int page,
             @QueryParam("size") @DefaultValue("20") int size,
@@ -63,7 +67,8 @@ public class BookingResource {
 
     @GET
     @Path("/{id}")
-    public Booking getBooking(@PathParam("id") Long id) {
+    @Transactional
+    public Booking getBooking(@PathParam("id") UUID id) {
         Booking booking = bookingRepository.findById(id);
         if (booking == null) {
             throw new WebApplicationException("Booking not found", Response.Status.NOT_FOUND);
@@ -93,7 +98,7 @@ public class BookingResource {
 
     @PUT
     @Path("/{id}/cancel")
-    public Booking cancelBooking(@PathParam("id") Long id) {
+    public Booking cancelBooking(@PathParam("id") UUID id) {
         Booking booking = bookingRepository.findById(id);
         if (booking == null) {
             throw new WebApplicationException("Booking not found", Response.Status.NOT_FOUND);

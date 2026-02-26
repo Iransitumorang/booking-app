@@ -9,8 +9,10 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.WebApplicationException;
+
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 
 @ApplicationScoped
 public class BookingService {
@@ -27,7 +29,7 @@ public class BookingService {
     }
 
     @Transactional
-    public Booking createBooking(Long roomId, String customerName,
+    public Booking createBooking(UUID roomId, String customerName,
                                  LocalDate checkIn, LocalDate checkOut) {
         Room room = entityManager.find(Room.class, roomId, LockModeType.PESSIMISTIC_WRITE);
         if (room == null) {
@@ -57,7 +59,7 @@ public class BookingService {
     }
 
     @Transactional
-    public Booking cancelBooking(Long bookingId) {
+    public Booking cancelBooking(UUID bookingId) {
         Booking booking = bookingRepository.findById(bookingId);
         if (booking == null) {
             throw new WebApplicationException("Booking not found", 404);
